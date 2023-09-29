@@ -7,13 +7,17 @@ public class Player : MonoBehaviour
 {
     public float speed;
     private CharacterController controller;
+    
     private Transform cam;
     private Vector3 moveDirection;
     public float gravity;
     public float colliderRadius;
     public float smoothRotTime;
     private float turnSmoothVelocity;
+    
     private Animator anim;
+    
+    public List<Transform> enemyList = new List<Transform>();
 
     // Start is called before the first frame update
     void Start()
@@ -27,7 +31,7 @@ public class Player : MonoBehaviour
     void Update()
     {
         Move();
-        GetMouseinput();
+        GetMouseInput();
     }
 
     private void Move()
@@ -44,22 +48,27 @@ public class Player : MonoBehaviour
             //verifica se o personagem está se movimentando (se for > 0)
             if (direction.magnitude > 0)
             {
-                //armazena a rotação e o angulo da camera 
-                float angle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
-                //armazena a rotação mais suave 
-                float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, angle, ref turnSmoothVelocity,
-                    smoothRotTime);
-                //rotaciona o personagem 
-                transform.rotation = Quaternion.Euler(0f, smoothAngle, 0f);
-                //armazena a direção 
-                moveDirection = Quaternion.Euler(0f, angle, 0f) * Vector3.forward * speed;
-                
-                anim.SetInteger("transition", 1);
+                if (!anim.GetBool("attack"))
+                {
+                    float angle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
+                    float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, angle, ref turnSmoothVelocity,
+                        smoothRotTime);
+                    transform.rotation = Quaternion.Euler(0f, smoothAngle, 0f);
+                    moveDirection = Quaternion.Euler(0f, angle, 0f) * Vector3.forward * speed;
+                    anim.SetInteger("transition", 1);
+                }
+                else
+                {
+                    moveDirection = Vector3.zero;  
+                    anim.SetBool("walk", false);
+                }
             }
             else
             {
-                moveDirection = Vector3.zero;  
                 anim.SetInteger("transition", 0);
+                anim.SetBool("walk", false);
+                moveDirection = Vector3.zero;  
+                //anim.SetInteger("transition", 0);
             }
 
         }
@@ -68,13 +77,22 @@ public class Player : MonoBehaviour
         controller.Move(moveDirection * Time.deltaTime);
     }
 
-    void GetMouseinput()
+    void GetMouseInput()
     {
         if (controller.isGrounded)
         {
             if (Input.GetMouseButtonDown(0))
             {
-                StartCoroutine(Attack());
+                if (anim.GetBool("walk"))
+                {
+                    anim.SetBool("walk", false);
+                    anim.SetInteger("transition", 0);
+                }
+
+                if (!anim.GetBool("walk"))
+                {
+                    StartCoroutine("Attack");
+                }
             }
         }
     }
@@ -83,13 +101,25 @@ public class Player : MonoBehaviour
     {
         anim.SetInteger("transition", 2);
         yield return new WaitForSeconds(10f);
+        GetEnemiesList();
+        foreach (Transform e in enemyList)
+        {
+            Debug.Log(e.name);
+        }
+        
+        yield return new WaitForSeconds(1f);
+        anim.SetInteger("transition", 0);
     }
 
     void GetEnemiesList()
     {
+        enemyList.Clear();
         foreach (Collider c in Physics.OverlapSphere((transform.position + transform.forward * colliderRadius), colliderRadius))
         {
-            
+            if (c.gameObject.CompareTag("Enemy"))
+            {
+                enemyList.Add(c.transform);
+            }
         }
     }
 
