@@ -18,6 +18,7 @@ public class Player : MonoBehaviour
     private Animator anim;
     
     public List<Transform> enemyList = new List<Transform>();
+    private bool isWalking;
 
     // Start is called before the first frame update
     void Start()
@@ -56,6 +57,7 @@ public class Player : MonoBehaviour
                     transform.rotation = Quaternion.Euler(0f, smoothAngle, 0f);
                     moveDirection = Quaternion.Euler(0f, angle, 0f) * Vector3.forward * speed;
                     anim.SetInteger("transition", 1);
+                    isWalking = true;
                 }
                 else
                 {
@@ -63,11 +65,12 @@ public class Player : MonoBehaviour
                     anim.SetBool("walk", false);
                 }
             }
-            else
+            else if (isWalking)
             {
                 anim.SetInteger("transition", 0);
                 anim.SetBool("walk", false);
-                moveDirection = Vector3.zero;  
+                moveDirection = Vector3.zero;
+                isWalking = false;
                 //anim.SetInteger("transition", 0);
             }
 
@@ -99,16 +102,18 @@ public class Player : MonoBehaviour
 
     IEnumerator Attack()
     {
+        anim.SetBool("attack", true);
         anim.SetInteger("transition", 2);
-        yield return new WaitForSeconds(10f);
+        yield return new WaitForSeconds(1f);
         GetEnemiesList();
         foreach (Transform e in enemyList)
         {
             Debug.Log(e.name);
         }
         
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
         anim.SetInteger("transition", 0);
+        anim.SetBool("attack", false);
     }
 
     void GetEnemiesList()
