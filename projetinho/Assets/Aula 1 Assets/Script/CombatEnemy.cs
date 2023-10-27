@@ -7,11 +7,12 @@ using UnityEngine.AI;
 public class CombatEnemy : MonoBehaviour
 {
     [Header("Atributtes")] 
-    public float totalHealth;
+    public float totalHealth = 100;
     public float attackDamage;
     public float movementSpeed;
     public float lookRadius;
     public float colliderRadius = 2;
+    public float rotationSpeed;
 
     [Header("Components")]
     private Animator anim;
@@ -38,40 +39,46 @@ public class CombatEnemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float distance = Vector3.Distance(player.position, transform.position);
-        if (distance <= lookRadius)
+        if (totalHealth > 0)
         {
-            //o personagem está no raio de ação
-            agent.isStopped = false;
-            if (!attacking)
+            
+            float distance = Vector3.Distance(player.position, transform.position);
+            if (distance <= lookRadius)
             {
-                agent.SetDestination(player.position);
-                anim.SetBool("Walk Forward", true);
-                walking = true;
-            }
-            if (distance <= agent.stoppingDistance)
-            {
-                StartCoroutine("Attack");
+                //o personagem está no raio de ação
+                agent.isStopped = false;
+                if (!attacking)
+                {
+                    agent.SetDestination(player.position);
+                    anim.SetBool("Walk Forward", true);
+                    walking = true;
+                }
+
+                if (distance <= agent.stoppingDistance)
+                {
+                    StartCoroutine("Attack");
+                    LokTarget();
+                }
+                else
+                {
+                    attacking = false;
+                }
             }
             else
             {
+                //o personagem não está no raio de ação
+                anim.SetBool("Walk Forward", false);
+                agent.isStopped = true;
+                walking = false;
                 attacking = false;
             }
         }
-        else
-        {
-            //o personagem não está no raio de ação
-            anim.SetBool("Walk Forward", false);
-            agent.isStopped = true; 
-            walking = false;
-            attacking = false;
-        }
-        
+
     }
     
     IEnumerator Attack()
     {
-        if (!waitFor)
+        if (!waitFor && !hiting)
         {
             waitFor = true;
             attacking = true;
@@ -107,7 +114,8 @@ public class CombatEnemy : MonoBehaviour
             StopCoroutine("Attack");
             anim.SetTrigger("Take Damage");
             hiting = true;
-            
+            StartCoroutine("RecoverFromHit");
+
         }
         else
         {
@@ -123,6 +131,13 @@ public class CombatEnemy : MonoBehaviour
         anim.SetBool("Claw Attack", false);
         hiting = false;
         waitFor = false;
+    }
+
+    void LokTarget()
+    {
+        Vector3 direction = (player.position - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * rotationSpeed);
     }
 
     private void OnDrawGizmosSelected()

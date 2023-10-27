@@ -6,15 +6,17 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     public float speed;
-    private CharacterController controller;
-    
-    private Transform cam;
-    private Vector3 moveDirection;
     public float gravity;
+    public float damage = 20;
     public float colliderRadius;
     public float smoothRotTime;
     private float turnSmoothVelocity;
+    public float totalHealth;
     
+    private CharacterController controller;
+    private Transform cam;
+    private Vector3 moveDirection;
+
     private Animator anim;
     
     public List<Transform> enemyList = new List<Transform>();
@@ -106,9 +108,16 @@ public class Player : MonoBehaviour
         anim.SetInteger("transition", 2);
         yield return new WaitForSeconds(1f);
         GetEnemiesList();
+        
         foreach (Transform e in enemyList)
         {
             Debug.Log(e.name);
+            CombatEnemy enemy = e.GetComponent<CombatEnemy>();
+
+            if (enemy != null)
+            {
+                enemy.GetHit(damage);
+            }
         }
         
         yield return new WaitForSeconds(0.5f);
@@ -126,6 +135,32 @@ public class Player : MonoBehaviour
                 enemyList.Add(c.transform);
             }
         }
+    }
+    
+    public void GetHit(float damage)
+    {
+        totalHealth -= damage;
+        //totalHealth = totalHealth - damage;
+        if (totalHealth > 0)
+        {
+            //esta vivo
+            StopCoroutine("Attack");
+            anim.SetTrigger("Take Damage");
+            StartCoroutine("RecoverFromHit");
+
+        }
+        else
+        {
+            //esta morto
+            anim.SetTrigger("Die");
+        }
+    }
+
+    IEnumerator RecoverFromHit()
+    {
+        yield return new WaitForSeconds(1f);
+        anim.SetBool("Walk Forward", false);
+        anim.SetBool("Claw Attack", false);
     }
 
     private void OnDrawGizmosSelected()
