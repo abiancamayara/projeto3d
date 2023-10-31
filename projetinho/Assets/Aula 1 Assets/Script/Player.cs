@@ -12,6 +12,8 @@ public class Player : MonoBehaviour
     public float smoothRotTime;
     private float turnSmoothVelocity;
     public float totalHealth;
+    private bool waitFor;
+    private bool isHitting;
     
     private CharacterController controller;
     private Transform cam;
@@ -104,25 +106,32 @@ public class Player : MonoBehaviour
 
     IEnumerator Attack()
     {
-        anim.SetBool("attack", true);
-        anim.SetInteger("transition", 2);
-        yield return new WaitForSeconds(1f);
-        GetEnemiesList();
-        
-        foreach (Transform e in enemyList)
+        if (!waitFor && !isHitting)
         {
-            Debug.Log(e.name);
-            CombatEnemy enemy = e.GetComponent<CombatEnemy>();
+            waitFor = true;
 
-            if (enemy != null)
+            anim.SetBool("attack", true);
+            anim.SetInteger("transition", 2);
+            
+            yield return new WaitForSeconds(0.4f);
+            GetEnemiesList();
+
+            foreach (Transform e in enemyList)
             {
-                enemy.GetHit(damage);
+                Debug.Log(e.name);
+                CombatEnemy enemy = e.GetComponent<CombatEnemy>();
+
+                if (enemy != null)
+                {
+                    enemy.GetHit(damage);
+                }
             }
+
+            yield return new WaitForSeconds(0.5f);
+            anim.SetInteger("transition", 0);
+            anim.SetBool("attack", false);
+            waitFor = false; 
         }
-        
-        yield return new WaitForSeconds(0.5f);
-        anim.SetInteger("transition", 0);
-        anim.SetBool("attack", false);
     }
 
     void GetEnemiesList()
@@ -145,8 +154,9 @@ public class Player : MonoBehaviour
         {
             //esta vivo
             StopCoroutine("Attack");
-            anim.SetTrigger("Take Damage");
-            StartCoroutine("RecoverFromHit");
+            anim.SetTrigger("transition", 3);
+            isHitting = false; 
+            anim.SetBool("attacking", false);
 
         }
         else
@@ -159,8 +169,8 @@ public class Player : MonoBehaviour
     IEnumerator RecoverFromHit()
     {
         yield return new WaitForSeconds(1f);
-        anim.SetBool("Walk Forward", false);
-        anim.SetBool("Claw Attack", false);
+        anim.SetInteger("transition", 0);
+        anim.SetBool("attacking", false);
     }
 
     private void OnDrawGizmosSelected()
