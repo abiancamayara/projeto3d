@@ -14,6 +14,7 @@ public class Player : MonoBehaviour
     public float totalHealth;
     private bool waitFor;
     private bool isHitting;
+    public bool isDead; 
     
     private CharacterController controller;
     private Transform cam;
@@ -35,8 +36,11 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Move();
-        GetMouseInput();
+        if (!isDead)
+        {
+            Move();
+            GetMouseInput();
+        }
     }
 
     private void Move()
@@ -154,15 +158,16 @@ public class Player : MonoBehaviour
         {
             //esta vivo
             StopCoroutine("Attack");
-            anim.SetTrigger("transition", 3);
-            isHitting = false; 
-            anim.SetBool("attacking", false);
+            anim.SetInteger("transition", 3);
+            isHitting = true;
+            StartCoroutine("RecoverFromHit");
 
         }
         else
         {
             //esta morto
-            anim.SetTrigger("Die");
+            isDead = true;
+            anim.SetTrigger("death");
         }
     }
 
@@ -170,6 +175,7 @@ public class Player : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);
         anim.SetInteger("transition", 0);
+        isHitting = false;
         anim.SetBool("attacking", false);
     }
 
