@@ -31,6 +31,8 @@ public class Player : MonoBehaviour
         controller = GetComponent<CharacterController>();
         cam = Camera.main.transform;
         anim = GetComponent<Animator>();
+        
+        GameController.instance.Coracao(totalHealth);
     }
 
     // Update is called once per frame
@@ -153,6 +155,8 @@ public class Player : MonoBehaviour
     public void GetHit(float damage)
     {
         totalHealth -= damage;
+        //GameController.instance.UpdateLives(totalHealth);
+        
         //totalHealth = totalHealth - damage;
         if (totalHealth > 0)
         {
@@ -169,6 +173,12 @@ public class Player : MonoBehaviour
             isDead = true;
             anim.SetTrigger("death");
         }
+    }
+
+    public void IncreaseLife(float value)
+    {
+        totalHealth += value;
+        GameController.instance.Coracao(totalHealth);
     }
 
     IEnumerator RecoverFromHit()
