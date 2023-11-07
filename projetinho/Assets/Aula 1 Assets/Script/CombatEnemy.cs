@@ -30,6 +30,8 @@ public class CombatEnemy : MonoBehaviour
     private bool waitFor;
     public bool playerIsDead;
 
+    public AudioSource AtaqueAranha;
+
     [Header("Waypoints")] public List<Transform> wayPoints = new List<Transform>();
     public int currentPathIndex;
     public float pathDistance; 
@@ -109,6 +111,7 @@ public class CombatEnemy : MonoBehaviour
         {
             waitFor = true;
             attacking = true;
+            AtaqueAranha.Play();
             walking = false;
             anim.SetBool("Walk Forward", false);
             anim.SetBool("Claw Attack", true);

@@ -21,7 +21,12 @@ public class Player : MonoBehaviour
     private Vector3 moveDirection;
 
     private Animator anim;
-    
+
+    public AudioSource Moeda;
+    public AudioSource SomAtaque;
+    public AudioSource Dano;
+    public AudioSource Morte;
+
     public List<Transform> enemyList = new List<Transform>();
     private bool isWalking;
 
@@ -115,6 +120,7 @@ public class Player : MonoBehaviour
         if (!waitFor && !isHitting)
         {
             waitFor = true;
+            SomAtaque.Play();
 
             anim.SetBool("attack", true);
             anim.SetInteger("transition", 2);
@@ -164,6 +170,7 @@ public class Player : MonoBehaviour
             StopCoroutine("Attack");
             anim.SetInteger("transition", 3);
             isHitting = true;
+            Dano.Play();
             StartCoroutine("RecoverFromHit");
 
         }
@@ -171,6 +178,7 @@ public class Player : MonoBehaviour
         {
             //esta morto
             isDead = true;
+            Morte.Play();
             anim.SetTrigger("death");
         }
     }
@@ -193,5 +201,13 @@ public class Player : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position + transform.forward, colliderRadius);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "Moeda")
+        {
+            Moeda.Play();
+        }
     }
 }
