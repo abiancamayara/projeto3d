@@ -64,7 +64,7 @@ public class Player : MonoBehaviour
             //verifica se o personagem está se movimentando (se for > 0)
             if (direction.magnitude > 0)
             {
-                if (!anim.GetBool("attack"))
+                if (!anim.GetBool("attacking"))
                 {
                     float angle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
                     float smoothAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, angle, ref turnSmoothVelocity,
@@ -122,7 +122,7 @@ public class Player : MonoBehaviour
             waitFor = true;
             SomAtaque.Play();
 
-            anim.SetBool("attack", true);
+            anim.SetBool("attacking", true);
             anim.SetInteger("transition", 2);
             
             yield return new WaitForSeconds(0.4f);
@@ -141,7 +141,7 @@ public class Player : MonoBehaviour
 
             yield return new WaitForSeconds(0.5f);
             anim.SetInteger("transition", 0);
-            anim.SetBool("attack", false);
+            anim.SetBool("attacking", false);
             waitFor = false; 
         }
     }
@@ -161,7 +161,7 @@ public class Player : MonoBehaviour
     public void GetHit(float damage)
     {
         totalHealth -= damage;
-        //GameController.instance.UpdateLives(totalHealth);
+        GameController.instance.Coracao(totalHealth);
         
         //totalHealth = totalHealth - damage;
         if (totalHealth > 0)
